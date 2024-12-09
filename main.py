@@ -19,7 +19,7 @@ if __name__ == "__main__":
         import_tipos(conexion_db, df_tipos)
         conexion_db.close()
 
-        engine = create_engine('mysql+mysqlconnector://root:psp20020@localhost:3306/Pokemon')
+        engine = create_engine('mysql+mysqlconnector://root:password@localhost:3306/Pokemon')
         data_pokedex = pd.read_sql("SELECT * FROM pokedex", engine)
         data_tipos = pd.read_sql("SELECT * FROM tipos", engine)
         data_regiones = pd.read_sql("SELECT * FROM region", engine)

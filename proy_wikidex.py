@@ -22,7 +22,7 @@ def conexion():
             host='localhost',
             port=3306,
             user='root',
-            password='psp20020', #favor de escribir su contraseña para que funcione :)
+            password='password', #favor de escribir su contraseña para que funcione :)
             database='Pokemon'
         )
         if conexion.is_connected():
@@ -265,7 +265,7 @@ if __name__ == "__main__":
         import_tipos(conexion_db, df_tipos)
         conexion_db.close()
 
-        engine = create_engine('mysql+mysqlconnector://root:psp20020@localhost:3306/Pokemon') #favor de escribir su contraseña para que funcione :)
+        engine = create_engine('mysql+mysqlconnector://root:password@localhost:3306/Pokemon') #favor de escribir su contraseña para que funcione :)
         data_pokedex = pd.read_sql("SELECT * FROM pokedex", engine)
         data_tipos = pd.read_sql("SELECT * FROM tipos", engine)
         data_regiones = pd.read_sql("SELECT * FROM region", engine)
