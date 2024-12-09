@@ -11,13 +11,13 @@ def conexion():
             database='Pokemon'
         )
         if conexion.is_connected():
-            print('Conexion exitosa a la base de datos.')
+            print('Good: Conexion exitosa.')
             return conexion
     except Error as ex:
-        print('Error durante la conexion:', ex)
+        print('Error: Conexion fallida.', ex)
         return None
 
-def importarDatosRegion(conexion, TablaRegion):
+def import_region(conexion, TablaRegion):
     try:
         cursor = conexion.cursor()
         df = TablaRegion.dropna()
@@ -26,13 +26,13 @@ def importarDatosRegion(conexion, TablaRegion):
             data = (row['Nombre'],)
             cursor.execute(sql, data)
         conexion.commit()
-        print('Datos de la tabla region insertados correctamente.')
+        print('Good: Datos de la tabla region insertados.')
     except Error as ex:
-        print('Error al insertar datos en region:', ex)
+        print('Error: Datos en region no insertados:', ex)
     finally:
         cursor.close()
 
-def importarDatosPokedex(conexion, TablaPokedex):
+def import_pokedex(conexion, TablaPokedex):
     try:
         cursor = conexion.cursor()
         df = TablaPokedex.dropna()
@@ -41,13 +41,13 @@ def importarDatosPokedex(conexion, TablaPokedex):
             data = (row['Numero de Pokedex'], row['Nombre de Pokemon'])
             cursor.execute(sql, data)
         conexion.commit()
-        print('Datos de la Pokedex insertados correctamente.')
+        print('Good: Datos Pokedex insertados.')
     except Error as ex:
-        print('Error al insertar datos en la Pokedex:', ex)
+        print('Error: Datos en la Pokedex no insertados:', ex)
     finally:
         cursor.close()
 
-def importarDatosTipos(conexion, TablaTipos):
+def import_tipos(conexion, TablaTipos):
     try:
         cursor = conexion.cursor()
         df = TablaTipos.dropna()
@@ -56,8 +56,8 @@ def importarDatosTipos(conexion, TablaTipos):
             data = (row['Nombre'],)
             cursor.execute(sql, data)
         conexion.commit()
-        print('Datos de la tabla tipos insertados correctamente.')
+        print('Good: Datos de la tabla tipos insertados.')
     except Error as ex:
-        print('Error al insertar datos en la tabla tipos:', ex)
+        print('Error: Datos en la tabla tipos no insetados:', ex)
     finally:
         cursor.close()

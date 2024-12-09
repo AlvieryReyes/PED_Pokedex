@@ -26,13 +26,13 @@ def conexion():
             database='Pokemon'
         )
         if conexion.is_connected():
-            print('Conexion exitosa a la base de datos.')
+            print('Good: Conexion exitosa.')
             return conexion
     except Error as ex:
-        print('Error durante la conexion:', ex)
+        print('Error: Conexion fallida.', ex)
         return None
 
-def importarDatosRegion(conexion, TablaRegion):
+def import_region(conexion, TablaRegion):
     try:
         cursor = conexion.cursor()
         df = TablaRegion.dropna()
@@ -41,13 +41,13 @@ def importarDatosRegion(conexion, TablaRegion):
             data = (row['Nombre'],)
             cursor.execute(sql, data)
         conexion.commit()
-        print('Datos de la tabla region insertados correctamente.')
+        print('Good: Datos region insertados.')
     except Error as ex:
-        print('Error al insertar datos en region:', ex)
+        print('Error: Datos de region no insertados:', ex)
     finally:
         cursor.close()
 
-def importarDatosPokedex(conexion, TablaPokedex):
+def import_pokedex(conexion, TablaPokedex):
     try:
         cursor = conexion.cursor()
         df = TablaPokedex.dropna()
@@ -56,13 +56,13 @@ def importarDatosPokedex(conexion, TablaPokedex):
             data = (row['Numero de Pokedex'], row['Nombre de Pokemon'])
             cursor.execute(sql, data)
         conexion.commit()
-        print('Datos de la Pokedex insertados correctamente.')
+        print('Good: Datos Pokedex insertados.')
     except Error as ex:
-        print('Error al insertar datos en la Pokedex:', ex)
+        print('Error: Datos en la Pokedex no insertados:', ex)
     finally:
         cursor.close()
 
-def importarDatosTipos(conexion, TablaTipos):
+def import_tipos(conexion, TablaTipos):
     try:
         cursor = conexion.cursor()
         df = TablaTipos.dropna()
@@ -71,13 +71,13 @@ def importarDatosTipos(conexion, TablaTipos):
             data = (row['Nombre'],)
             cursor.execute(sql, data)
         conexion.commit()
-        print('Datos de la tabla tipos insertados correctamente.')
+        print('Good: Datos tipos insertados.')
     except Error as ex:
-        print('Error al insertar datos en la tabla tipos:', ex)
+        print('Error: Datos de tipos no insertados:', ex)
     finally:
         cursor.close()
 
-def webscrapingRegion():
+def ws_region():
     driver_path = ChromeDriverManager().install()
     service = Service(driver_path)
     options = Options()
@@ -108,7 +108,7 @@ def webscrapingRegion():
     df.to_csv('region.csv', index=False)
     return df
 
-def webscrapingPokedex():
+def ws_pokedex():
     driver_path = ChromeDriverManager().install()
     service = Service(driver_path)
     options = Options()
@@ -135,7 +135,7 @@ def webscrapingPokedex():
     df.to_csv('Pokedex.csv', index=False)
     return df
 
-def webscrappingTipos():
+def ws_tipos():
     driver_path = ChromeDriverManager().install()
     service = Service(driver_path)
     options = Options()
@@ -164,7 +164,7 @@ def webscrappingTipos():
     df.to_csv('tipos.csv', index=False)
     return df
 
-def dibujar(data_pokedex: pd.DataFrame, data_tipos: pd.DataFrame, data_regiones: pd.DataFrame):
+def graph(data_pokedex: pd.DataFrame, data_tipos: pd.DataFrame, data_regiones: pd.DataFrame):
     fig_pokedex = px.scatter(
         data_pokedex,
         x='Numero_de_pokedex',
@@ -253,16 +253,16 @@ def dibujar(data_pokedex: pd.DataFrame, data_tipos: pd.DataFrame, data_regiones:
     return body
 
 if __name__ == "__main__":
-    print("Iniciando scraping y configuración de datos...")
-    df_regiones = webscrapingRegion()
-    df_pokedex = webscrapingPokedex()
-    df_tipos = webscrappingTipos()
+    print("Extrayendo datos..................")
+    df_regiones = ws_region()
+    df_pokedex = ws_pokedex()
+    df_tipos = ws_tipos()
 
     conexion_db = conexion()
     if conexion_db:
-        importarDatosRegion(conexion_db, df_regiones)
-        importarDatosPokedex(conexion_db, df_pokedex)
-        importarDatosTipos(conexion_db, df_tipos)
+        import_region(conexion_db, df_regiones)
+        import_pokedex(conexion_db, df_pokedex)
+        import_tipos(conexion_db, df_tipos)
         conexion_db.close()
 
         engine = create_engine('mysql+mysqlconnector://root:psp20020@localhost:3306/Pokemon') #favor de escribir su contraseña para que funcione :)
@@ -271,7 +271,7 @@ if __name__ == "__main__":
         data_regiones = pd.read_sql("SELECT * FROM region", engine)
 
         app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
-        app.layout = dibujar(data_pokedex, data_tipos, data_regiones)
+        app.layout = graph(data_pokedex, data_tipos, data_regiones)
         app.run(debug=True)
     else:
-        print("No se pudo conectar a la base de datos.")
+        print("Error: Conexion fallida.")

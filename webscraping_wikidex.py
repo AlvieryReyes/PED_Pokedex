@@ -10,7 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import ElementClickInterceptedException
 
-def webscrapingRegion():
+def ws_region():
     driver_path = ChromeDriverManager().install()
     service = Service(driver_path)
     options = Options()
@@ -38,7 +38,7 @@ def webscrapingRegion():
     df.to_csv('region.csv', index=False)
     return df
 
-def webscrapingPokedex():
+def ws_pokedex():
     driver_path = ChromeDriverManager().install()
     service = Service(driver_path)
     options = Options()
@@ -64,7 +64,7 @@ def webscrapingPokedex():
     df.to_csv('Pokedex.csv', index=False)
     return df
 
-def webscrappingTipos():
+def ws_Tipos():
     driver_path = ChromeDriverManager().install()
     service = Service(driver_path)
     options = Options()
