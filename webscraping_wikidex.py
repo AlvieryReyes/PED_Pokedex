@@ -1,4 +1,3 @@
-# webscraping.py
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -11,7 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import ElementClickInterceptedException
 
-def webscraping_region():
+def webscrapingRegion():
     driver_path = ChromeDriverManager().install()
     service = Service(driver_path)
     options = Options()
@@ -19,7 +18,6 @@ def webscraping_region():
     navegador = webdriver.Chrome(service=service, options=options)
 
     navegador.get('https://www.wikidex.net/wiki/WikiDex')
-
     txtBuscador = navegador.find_element(By.NAME, 'search')
     btnIr = navegador.find_element(By.NAME, 'go')
     txtBuscador.send_keys('region')
@@ -31,17 +29,16 @@ def webscraping_region():
         navegador.execute_script("arguments[0].click();", btnIr)
 
     time.sleep(3)
-
     soup = BeautifulSoup(navegador.page_source, 'html.parser')
     items = soup.find_all('li', {'class': 'toclevel-2'})
-
     regiones = [{'Nombre': item.find('span', {'class': 'toctext'}).text.strip()} for item in items]
 
     navegador.quit()
     df = pd.DataFrame(regiones)
+    df.to_csv('region.csv', index=False)
     return df
 
-def webscraping_pokedex():
+def webscrapingPokedex():
     driver_path = ChromeDriverManager().install()
     service = Service(driver_path)
     options = Options()
@@ -50,7 +47,6 @@ def webscraping_pokedex():
 
     navegador.get('https://www.wikidex.net/wiki/Lista_de_Pok%C3%A9mon')
     time.sleep(5)
-
     soup = BeautifulSoup(navegador.page_source, 'html.parser')
     rows = soup.find_all('tr')
 
@@ -61,13 +57,14 @@ def webscraping_pokedex():
             pokedex_numero = cols[0].text.strip()
             nombre = cols[1].a.text.strip()
             if pokedex_numero.isdigit():
-                pokedex_data.append({'Numero_de_pokedex': pokedex_numero, 'Nombre_de_pokemon': nombre})
+                pokedex_data.append({'Numero de Pokedex': pokedex_numero, 'Nombre de Pokemon': nombre})
 
     navegador.quit()
     df = pd.DataFrame(pokedex_data)
+    df.to_csv('Pokedex.csv', index=False)
     return df
 
-def webscraping_tipos():
+def webscrappingTipos():
     driver_path = ChromeDriverManager().install()
     service = Service(driver_path)
     options = Options()
@@ -76,7 +73,6 @@ def webscraping_tipos():
 
     navegador.get('https://www.wikidex.net/wiki/Tipo')
     time.sleep(7)
-
     soup = BeautifulSoup(navegador.page_source, 'html.parser')
     table = soup.find('table', {'class': 'tabpokemon'})
 
@@ -93,4 +89,5 @@ def webscraping_tipos():
     navegador.quit()
     tipos_list = [{'Nombre': tipo} for tipo in sorted(tipos)]
     df = pd.DataFrame(tipos_list)
+    df.to_csv('tipos.csv', index=False)
     return df

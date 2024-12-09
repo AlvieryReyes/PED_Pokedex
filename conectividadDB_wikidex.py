@@ -7,36 +7,57 @@ def conexion():
             host='localhost',
             port=3306,
             user='root',
-            password='psp20020',
+            password='psp20020',  #favor de escribir su contraseña para que funcione :)
             database='Pokemon'
         )
         if conexion.is_connected():
-            print('Conexión exitosa a la base de datos.')
+            print('Conexion exitosa a la base de datos.')
             return conexion
     except Error as ex:
-        print('Error durante la conexión:', ex)
+        print('Error durante la conexion:', ex)
         return None
 
-def importar_datos(conexion, tabla, datos):
+def importarDatosRegion(conexion, TablaRegion):
     try:
         cursor = conexion.cursor()
-        df = datos.dropna()  # Eliminar valores nulos para evitar errores
-        if tabla == 'region':
-            sql = "INSERT INTO region (Nombre) VALUES (%s)"
-            data_to_insert = [(row['Nombre'],) for _, row in df.iterrows()]
-        elif tabla == 'pokedex':
-            sql = "INSERT INTO pokedex (Numero_de_pokedex, Nombre_de_pokemon) VALUES (%s, %s)"
-            data_to_insert = [(row['Numero de Pokedex'], row['Nombre de Pokemon']) for _, row in df.iterrows()]
-        elif tabla == 'tipos':
-            sql = "INSERT INTO tipos (Nombre) VALUES (%s)"
-            data_to_insert = [(row['Nombre'],) for _, row in df.iterrows()]
-        else:
-            raise ValueError("Tabla no soportada.")
-
-        cursor.executemany(sql, data_to_insert)
+        df = TablaRegion.dropna()
+        for _, row in df.iterrows():
+            sql = """INSERT INTO region (Nombre) VALUES (%s)"""
+            data = (row['Nombre'],)
+            cursor.execute(sql, data)
         conexion.commit()
-        print(f'Datos de la tabla {tabla} insertados correctamente.')
+        print('Datos de la tabla region insertados correctamente.')
     except Error as ex:
-        print(f'Error al insertar datos en {tabla}:', ex)
+        print('Error al insertar datos en region:', ex)
+    finally:
+        cursor.close()
+
+def importarDatosPokedex(conexion, TablaPokedex):
+    try:
+        cursor = conexion.cursor()
+        df = TablaPokedex.dropna()
+        for _, row in df.iterrows():
+            sql = """INSERT INTO pokedex (Numero_de_pokedex, Nombre_de_pokemon) VALUES (%s, %s)"""
+            data = (row['Numero de Pokedex'], row['Nombre de Pokemon'])
+            cursor.execute(sql, data)
+        conexion.commit()
+        print('Datos de la Pokedex insertados correctamente.')
+    except Error as ex:
+        print('Error al insertar datos en la Pokedex:', ex)
+    finally:
+        cursor.close()
+
+def importarDatosTipos(conexion, TablaTipos):
+    try:
+        cursor = conexion.cursor()
+        df = TablaTipos.dropna()
+        for _, row in df.iterrows():
+            sql = """INSERT INTO tipos (Nombre) VALUES (%s)"""
+            data = (row['Nombre'],)
+            cursor.execute(sql, data)
+        conexion.commit()
+        print('Datos de la tabla tipos insertados correctamente.')
+    except Error as ex:
+        print('Error al insertar datos en la tabla tipos:', ex)
     finally:
         cursor.close()

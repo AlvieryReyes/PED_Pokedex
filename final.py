@@ -22,7 +22,7 @@ def conexion():
             host='localhost',
             port=3306,
             user='root',
-            password='psp20020', #favor de escribir su contraseña para que funcione :)
+            password='psp20020',
             database='Pokemon'
         )
         if conexion.is_connected():
@@ -35,9 +35,9 @@ def conexion():
 def importarDatosRegion(conexion, TablaRegion):
     try:
         cursor = conexion.cursor()
-        df = TablaRegion.dropna()
+        df = TablaRegion.dropna().drop_duplicates()
         for _, row in df.iterrows():
-            sql = """INSERT INTO region (Nombre) VALUES (%s)"""
+            sql = """INSERT IGNORE INTO region (Nombre) VALUES (%s)"""
             data = (row['Nombre'],)
             cursor.execute(sql, data)
         conexion.commit()
@@ -50,10 +50,10 @@ def importarDatosRegion(conexion, TablaRegion):
 def importarDatosPokedex(conexion, TablaPokedex):
     try:
         cursor = conexion.cursor()
-        df = TablaPokedex.dropna()
+        df = TablaPokedex.dropna().drop_duplicates()
         for _, row in df.iterrows():
-            sql = """INSERT INTO pokedex (Numero_de_pokedex, Nombre_de_pokemon) VALUES (%s, %s)"""
-            data = (row['Numero de Pokedex'], row['Nombre de Pokemon'])
+            sql = """INSERT IGNORE INTO pokedex (Numero_de_pokedex, Nombre_de_pokemon, Region_id) VALUES (%s, %s, %s)"""
+            data = (row['Numero de Pokedex'], row['Nombre de Pokemon'], row['Region_id'])
             cursor.execute(sql, data)
         conexion.commit()
         print('Datos de la Pokedex insertados correctamente.')
@@ -65,9 +65,9 @@ def importarDatosPokedex(conexion, TablaPokedex):
 def importarDatosTipos(conexion, TablaTipos):
     try:
         cursor = conexion.cursor()
-        df = TablaTipos.dropna()
+        df = TablaTipos.dropna().drop_duplicates()
         for _, row in df.iterrows():
-            sql = """INSERT INTO tipos (Nombre) VALUES (%s)"""
+            sql = """INSERT IGNORE INTO tipos (Nombre) VALUES (%s)"""
             data = (row['Nombre'],)
             cursor.execute(sql, data)
         conexion.commit()
@@ -108,7 +108,7 @@ def webscrapingRegion():
     df.to_csv('region.csv', index=False)
     return df
 
-def webscrapingPokedex():
+def webscrapingPokedex(region_mapping):
     driver_path = ChromeDriverManager().install()
     service = Service(driver_path)
     options = Options()
@@ -127,8 +127,10 @@ def webscrapingPokedex():
         if len(cols) >= 2:
             pokedex_numero = cols[0].text.strip()
             nombre = cols[1].a.text.strip()
+            region_name = cols[2].text.strip() if len(cols) > 2 else None
+            region_id = region_mapping.get(region_name, None)
             if pokedex_numero.isdigit():
-                pokedex_data.append({'Numero de Pokedex': pokedex_numero, 'Nombre de Pokemon': nombre})
+                pokedex_data.append({'Numero de Pokedex': pokedex_numero, 'Nombre de Pokemon': nombre, 'Region_id': region_id})
 
     navegador.quit()
     df = pd.DataFrame(pokedex_data)
@@ -164,90 +166,39 @@ def webscrappingTipos():
     df.to_csv('tipos.csv', index=False)
     return df
 
-def dibujar(data_pokedex: pd.DataFrame, data_tipos: pd.DataFrame, data_regiones: pd.DataFrame):
-    fig_pokedex = px.scatter(
-        data_pokedex,
-        x='Numero_de_pokedex',
-        y='Nombre_de_pokemon',
-        title='Distribución de Pokémon',
-        labels={'Numero_de_pokedex': 'Número de Pokédex', 'Nombre_de_pokemon': 'Nombre del Pokémon'}
+def dibujar(data_combined: pd.DataFrame):
+    # Gráfico de barras apiladas: Pokémon por región y tipo
+    fig_regiones_tipos = px.bar(
+        data_combined,
+        x='region_name',
+        color='tipo_name',
+        title='Distribución de Pokémon por Región y Tipo',
+        labels={'region_name': 'Región', 'tipo_name': 'Tipo'}
     )
 
-    #grafica pastel
-    fig_tipos_pie = px.pie(
-        data_tipos,
-        names='Nombre',
-        title='Distribución de Tipos de Pokémon'
-    )
-
-    #grafica de barras para las regiones de pokemon
-    fig_regiones_bar = px.bar(
-        data_regiones,
-        x='Nombre',
-        title='Cantidad de Pokémon por Región',
-        labels={'Nombre': 'Región', 'value': 'Cantidad'}
-    )
-
-    #grafica de barras, Si los datos de tipos estan relacionados con regiones, si nos podria salir la grafica pero no esta relacionado :(
-    fig_tipos_bar = px.bar(
-        data_tipos,
-        x='Nombre',
-        title='Cantidad de Pokémon por Tipo',
-        labels={'Nombre': 'Tipo', 'value': 'Cantidad'}
+    # Mapa de calor (heatmap) de tipos por región
+    heatmap_data = data_combined.groupby(['region_name', 'tipo_name']).size().reset_index(name='count')
+    fig_heatmap = px.density_heatmap(
+        heatmap_data,
+        x='region_name',
+        y='tipo_name',
+        z='count',
+        title='Mapa de Calor de Tipos por Región',
+        labels={'region_name': 'Región', 'tipo_name': 'Tipo', 'count': 'Cantidad'}
     )
 
     body = html.Div([
         html.H1("Dashboard de Pokémon", style={"textAlign": "center", "color": "#FFCC00"}),
 
         html.Div([
-            html.H2("Distribución de Pokémon"),
-            dcc.Graph(figure=fig_pokedex)
+            html.H2("Distribución de Pokémon por Región y Tipo"),
+            dcc.Graph(figure=fig_regiones_tipos)
         ], style={"padding": "10px", "backgroundColor": "#1E1E1E", "color": "white"}),
 
         html.Div([
-            html.H2("Distribución de Tipos de Pokémon"),
-            dcc.Graph(figure=fig_tipos_pie)
+            html.H2("Mapa de Calor de Tipos por Región"),
+            dcc.Graph(figure=fig_heatmap)
         ], style={"padding": "10px", "backgroundColor": "#1E1E1E", "color": "white"}),
-
-        html.Div([
-            html.H2("Cantidad de Pokémon por Región"),
-            dcc.Graph(figure=fig_regiones_bar)
-        ], style={"padding": "10px", "backgroundColor": "#1E1E1E", "color": "white"}),
-
-        html.Div([
-            html.H2("Cantidad de Pokémon por Tipo"),
-            dcc.Graph(figure=fig_tipos_bar)
-        ], style={"padding": "10px", "backgroundColor": "#1E1E1E", "color": "white"}),
-
-        html.H3("Tabla Interactiva de la Pokedex"),
-        dash_table.DataTable(
-            data=data_pokedex.to_dict("records"),
-            columns=[{"name": col, "id": col} for col in data_pokedex.columns],
-            page_size=10,
-            style_table={'overflowX': 'auto'},
-            style_header={'backgroundColor': '#1E1E1E', 'color': 'white'},
-            style_data={'backgroundColor': '#3E3E3E', 'color': 'white'}
-        ),
-
-        html.H3("Tabla Interactiva de Tipos de Pokémon"),
-        dash_table.DataTable(
-            data=data_tipos.to_dict("records"),
-            columns=[{"name": col, "id": col} for col in data_tipos.columns],
-            page_size=10,
-            style_table={'overflowX': 'auto'},
-            style_header={'backgroundColor': '#1E1E1E', 'color': 'white'},
-            style_data={'backgroundColor': '#3E3E3E', 'color': 'white'}
-        ),
-
-        html.H3("Tabla Interactiva de Regiones"),
-        dash_table.DataTable(
-            data=data_regiones.to_dict("records"),
-            columns=[{"name": col, "id": col} for col in data_regiones.columns],
-            page_size=10,
-            style_table={'overflowX': 'auto'},
-            style_header={'backgroundColor': '#1E1E1E', 'color': 'white'},
-            style_data={'backgroundColor': '#3E3E3E', 'color': 'white'}
-        )
     ])
 
     return body
@@ -255,7 +206,9 @@ def dibujar(data_pokedex: pd.DataFrame, data_tipos: pd.DataFrame, data_regiones:
 if __name__ == "__main__":
     print("Iniciando scraping y configuración de datos...")
     df_regiones = webscrapingRegion()
-    df_pokedex = webscrapingPokedex()
+    region_mapping = {row['Nombre']: idx + 1 for idx, row in df_regiones.iterrows()}
+
+    df_pokedex = webscrapingPokedex(region_mapping)
     df_tipos = webscrappingTipos()
 
     conexion_db = conexion()
@@ -265,13 +218,17 @@ if __name__ == "__main__":
         importarDatosTipos(conexion_db, df_tipos)
         conexion_db.close()
 
-        engine = create_engine('mysql+mysqlconnector://root:psp20020@localhost:3306/Pokemon') #favor de escribir su contraseña para que funcione :)
-        data_pokedex = pd.read_sql("SELECT * FROM pokedex", engine)
-        data_tipos = pd.read_sql("SELECT * FROM tipos", engine)
-        data_regiones = pd.read_sql("SELECT * FROM region", engine)
+        engine = create_engine('mysql+mysqlconnector://root:psp20020@localhost:3306/Pokemon')
+        query = """
+        SELECT p.Nombre_de_pokemon, r.Nombre AS region_name, t.Nombre AS tipo_name
+        FROM pokedex p
+        LEFT JOIN region r ON p.Region_id = r.id
+        LEFT JOIN tipos t ON t.id IN (SELECT tipo_id FROM pokemon_tipos WHERE pokemon_id = p.id)
+        """
+        data_combined = pd.read_sql(query, engine)
 
         app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
-        app.layout = dibujar(data_pokedex, data_tipos, data_regiones)
+        app.layout = dibujar(data_combined)
         app.run(debug=True)
     else:
         print("No se pudo conectar a la base de datos.")
