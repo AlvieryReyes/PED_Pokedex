@@ -11,41 +11,32 @@ def conexion():
             database='Pokemon'
         )
         if conexion.is_connected():
-            print('Conexion exitosa a la base de datos.')
+            print('Conexión exitosa a la base de datos.')
             return conexion
     except Error as ex:
-        print('Error durante la conexion:', ex)
+        print('Error durante la conexión:', ex)
         return None
 
-def importarDatosRegion(conexion, TablaRegion):
+def importar_datos(conexion, tabla, datos):
     try:
         cursor = conexion.cursor()
-        for _, row in TablaRegion.iterrows():
+        df = datos.dropna()  # Eliminar valores nulos para evitar errores
+        if tabla == 'region':
             sql = "INSERT INTO region (Nombre) VALUES (%s)"
-            cursor.execute(sql, (row['Nombre'],))
-        conexion.commit()
-        print('Datos de la tabla region insertados correctamente.')
-    finally:
-        cursor.close()
-
-def importarDatosPokedex(conexion, TablaPokedex):
-    try:
-        cursor = conexion.cursor()
-        for _, row in TablaPokedex.iterrows():
+            data_to_insert = [(row['Nombre'],) for _, row in df.iterrows()]
+        elif tabla == 'pokedex':
             sql = "INSERT INTO pokedex (Numero_de_pokedex, Nombre_de_pokemon) VALUES (%s, %s)"
-            cursor.execute(sql, (row['Numero de Pokedex'], row['Nombre de Pokemon']))
-        conexion.commit()
-        print('Datos de la Pokedex insertados correctamente.')
-    finally:
-        cursor.close()
-
-def importarDatosTipos(conexion, TablaTipos):
-    try:
-        cursor = conexion.cursor()
-        for _, row in TablaTipos.iterrows():
+            data_to_insert = [(row['Numero de Pokedex'], row['Nombre de Pokemon']) for _, row in df.iterrows()]
+        elif tabla == 'tipos':
             sql = "INSERT INTO tipos (Nombre) VALUES (%s)"
-            cursor.execute(sql, (row['Nombre'],))
+            data_to_insert = [(row['Nombre'],) for _, row in df.iterrows()]
+        else:
+            raise ValueError("Tabla no soportada.")
+
+        cursor.executemany(sql, data_to_insert)
         conexion.commit()
-        print('Datos de la tabla tipos insertados correctamente.')
+        print(f'Datos de la tabla {tabla} insertados correctamente.')
+    except Error as ex:
+        print(f'Error al insertar datos en {tabla}:', ex)
     finally:
         cursor.close()

@@ -165,98 +165,118 @@ def webscrappingTipos():
     return df
 
 def dibujar(data_pokedex: pd.DataFrame, data_tipos: pd.DataFrame, data_regiones: pd.DataFrame):
-    # Grafica de dispersion para los datos de la Pokedex
+    # Gráfica de dispersión para la Pokedex
     fig_pokedex = px.scatter(
         data_pokedex,
         x='Numero_de_pokedex',
         y='Nombre_de_pokemon',
-        title='Distribucion de Pokemon'
+        title='Distribución de Pokémon',
+        labels={'Numero_de_pokedex': 'Número de Pokédex', 'Nombre_de_pokemon': 'Nombre del Pokémon'}
     )
-    fig_pokedex.update_layout(xaxis_title="Numero de Pokedex", yaxis_title="Nombre de Pokemon")
 
-    # Grafica de pastel para los tipos de Pokemon
+    # Gráfica de pastel para los tipos de Pokémon
     fig_tipos_pie = px.pie(
         data_tipos,
         names='Nombre',
-        title='Distribucion de Tipos de Pokemon'
+        title='Distribución de Tipos de Pokémon'
     )
 
-    # Grafica de barras para las regiones de Pokemon
-    fig_regiones = px.bar(
+    # Gráfica de barras para las regiones de Pokémon
+    fig_regiones_bar = px.bar(
         data_regiones,
         x='Nombre',
-        title='Regiones de Pokemon'
+        title='Cantidad de Pokémon por Región',
+        labels={'Nombre': 'Región', 'value': 'Cantidad'}
     )
-    fig_regiones.update_layout(xaxis_title="Region", yaxis_title="Cantidad")
 
-    # Crear el diseno de la aplicacion con Dash
+    # Gráfica de barras apiladas: Tipos por Región (requeriría datos combinados)
+    # Si los datos de tipos están relacionados con regiones, podemos añadir esta gráfica
+    fig_tipos_bar = px.bar(
+        data_tipos,
+        x='Nombre',
+        title='Cantidad de Pokémon por Tipo',
+        labels={'Nombre': 'Tipo', 'value': 'Cantidad'}
+    )
+
+    # Gráfica de calor (heatmap) para análisis combinados (si tuvieras datos combinados)
+    # Placeholder: Puedes generar heatmaps combinando data_pokedex y data_tipos si tienes esos datos.
+
+    # Diseño de la aplicación Dash
     body = html.Div([
-        html.H2("Visualizacion de Datos de Pokemon", style={"textAlign": "center", "color": "yellow"}),
-        html.P("Exploracion de datos de la Pokedex, tipos y regiones de Pokemon."),
-        html.Hr(),
-        dcc.Graph(figure=fig_pokedex),
-        dcc.Graph(figure=fig_tipos_pie),
-        dcc.Graph(figure=fig_regiones),
-        html.H3("Tabla de la Pokedex"),
+        html.H1("Dashboard de Pokémon", style={"textAlign": "center", "color": "#FFCC00"}),
+
+        html.Div([
+            html.H2("Distribución de Pokémon"),
+            dcc.Graph(figure=fig_pokedex)
+        ], style={"padding": "10px", "backgroundColor": "#1E1E1E", "color": "white"}),
+
+        html.Div([
+            html.H2("Distribución de Tipos de Pokémon"),
+            dcc.Graph(figure=fig_tipos_pie)
+        ], style={"padding": "10px", "backgroundColor": "#1E1E1E", "color": "white"}),
+
+        html.Div([
+            html.H2("Cantidad de Pokémon por Región"),
+            dcc.Graph(figure=fig_regiones_bar)
+        ], style={"padding": "10px", "backgroundColor": "#1E1E1E", "color": "white"}),
+
+        html.Div([
+            html.H2("Cantidad de Pokémon por Tipo"),
+            dcc.Graph(figure=fig_tipos_bar)
+        ], style={"padding": "10px", "backgroundColor": "#1E1E1E", "color": "white"}),
+
+        html.H3("Tabla Interactiva de la Pokedex"),
         dash_table.DataTable(
             data=data_pokedex.to_dict("records"),
-            page_size=5,
-            style_table={'overflowX': 'auto'}
+            columns=[{"name": col, "id": col} for col in data_pokedex.columns],
+            page_size=10,
+            style_table={'overflowX': 'auto'},
+            style_header={'backgroundColor': '#1E1E1E', 'color': 'white'},
+            style_data={'backgroundColor': '#3E3E3E', 'color': 'white'}
         ),
-        html.H3("Tabla de Tipos de Pokemon"),
+
+        html.H3("Tabla Interactiva de Tipos de Pokémon"),
         dash_table.DataTable(
             data=data_tipos.to_dict("records"),
-            page_size=5,
-            style_table={'overflowX': 'auto'}
+            columns=[{"name": col, "id": col} for col in data_tipos.columns],
+            page_size=10,
+            style_table={'overflowX': 'auto'},
+            style_header={'backgroundColor': '#1E1E1E', 'color': 'white'},
+            style_data={'backgroundColor': '#3E3E3E', 'color': 'white'}
         ),
-        html.H3("Tabla de Regiones de Pokemon"),
+
+        html.H3("Tabla Interactiva de Regiones"),
         dash_table.DataTable(
             data=data_regiones.to_dict("records"),
-            page_size=5,
-            style_table={'overflowX': 'auto'}
+            columns=[{"name": col, "id": col} for col in data_regiones.columns],
+            page_size=10,
+            style_table={'overflowX': 'auto'},
+            style_header={'backgroundColor': '#1E1E1E', 'color': 'white'},
+            style_data={'backgroundColor': '#3E3E3E', 'color': 'white'}
         )
-    ], style={"backgroundColor": "#1E1E1E", "color": "white", "padding": "20px"})
+    ])
 
     return body
 
 if __name__ == "__main__":
-    print("Iniciando scraping de regiones...")
+    print("Iniciando scraping y configuración de datos...")
     df_regiones = webscrapingRegion()
-    print(df_regiones.head())
-
-    print("\nIniciando scraping de la Pokedex...")
     df_pokedex = webscrapingPokedex()
-    print(df_pokedex.head())
-
-    print("\nIniciando scraping de tipos...")
     df_tipos = webscrappingTipos()
-    print(df_tipos.head())
 
-    print("\nConectando a la base de datos...")
     conexion_db = conexion()
     if conexion_db:
-        print("\nImportando datos a la base de datos...")
         importarDatosRegion(conexion_db, df_regiones)
         importarDatosPokedex(conexion_db, df_pokedex)
         importarDatosTipos(conexion_db, df_tipos)
         conexion_db.close()
-        print("\nDatos importados correctamente.")
 
-        print("\nConfigurando la aplicacion Dash...")
         engine = create_engine('mysql+mysqlconnector://root:psp20020@localhost:3306/Pokemon')
+        data_pokedex = pd.read_sql("SELECT * FROM pokedex", engine)
+        data_tipos = pd.read_sql("SELECT * FROM tipos", engine)
+        data_regiones = pd.read_sql("SELECT * FROM region", engine)
 
-        # Consultas SQL para obtener datos
-        query_pokedex = "SELECT * FROM pokedex"
-        query_tipos = "SELECT * FROM tipos"
-        query_region = "SELECT * FROM region"
-
-        # Lectura de datos desde la base de datos
-        data_pokedex = pd.read_sql(query_pokedex, engine)
-        data_tipos = pd.read_sql(query_tipos, engine)
-        data_regiones = pd.read_sql(query_region, engine)
-
-        # Configuracion y ejecucion de la aplicacion Dash
-        app = Dash(__name__)
+        app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
         app.layout = dibujar(data_pokedex, data_tipos, data_regiones)
         app.run(debug=True)
     else:
