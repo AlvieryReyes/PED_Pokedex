@@ -1,6 +1,6 @@
-from webscraping import webscrapingRegion, webscrapingPokedex, webscrapingTipos
-from database import conexion, importarDatosRegion, importarDatosPokedex, importarDatosTipos
-from dashboard import dibujar
+from webscraping_wikidex import webscrapingRegion, webscrapingPokedex, webscrapingTipos
+from conectividadDB_wikidex import conexion, importarDatosRegion, importarDatosPokedex, importarDatosTipos
+from dashboard_wikidex import dibujar
 from dash import Dash
 import pandas as pd
 from sqlalchemy import create_engine
@@ -19,7 +19,7 @@ if conexion_db:
     conexion_db.close()
 
 # Dashboards
-engine = create_engine('mysql+mysqlconnector://root:password@localhost:3306/Pokemon')
+engine = create_engine('mysql+mysqlconnector://root:psp20020@localhost:3306/Pokemon')
 data_pokedex = pd.read_sql("SELECT * FROM pokedex", engine)
 data_tipos = pd.read_sql("SELECT * FROM tipos", engine)
 data_regiones = pd.read_sql("SELECT * FROM region", engine)

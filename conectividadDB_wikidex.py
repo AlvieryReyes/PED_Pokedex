@@ -7,7 +7,7 @@ def conexion():
             host='localhost',
             port=3306,
             user='root',
-            password='password',
+            password='psp20020',
             database='Pokemon'
         )
         if conexion.is_connected():
