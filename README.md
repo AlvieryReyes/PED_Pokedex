@@ -4,7 +4,7 @@ Este proyecto consiste en un conjunto de scripts en Python que realizan web scra
 
 
 ## Contenido
-- [Descripcion del proyecto](https://github.com/AlvieryReyes/PED_Pokedex/edit/main/descripcion/README.md)
+- [Descripcion del proyecto](#descripcion)
 - [Requisitos](https://github.com/AlvieryReyes/PED_Pokedex/edit/main/requisitos/README.md)
 - [Estructura del proyecto](https://github.com/AlvieryReyes/PED_Pokedex/edit/main/estructura/README.md)
 - [Scripts](https://github.com/AlvieryReyes/PED_Pokedex/edit/main/scripts/README.md)
