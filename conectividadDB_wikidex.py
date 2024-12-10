@@ -1,6 +1,17 @@
+#Iniciamos importando la librería correspondiente a MySQL, la cual es mysql.connector, que nos ayudará a movernos
+#dentro de este programa y hacer modificaciones e inserciones. 
+
 import mysql.connector
 from mysql.connector import Error
 
+
+#en este caso se harán las inserciones de los 
+#datos que recuperamos y guardamos en los dataframes.
+
+#Específicamente las cosas que pasaremos serán los datos de la tabla (Dataframe) región de los poquemones 
+#También de Pokedex y los tipos de pokemon existentes que recuperamos
+
+#Generamos la conexión
 def conexion():
     try:
         conexion = mysql.connector.connect(
@@ -17,6 +28,10 @@ def conexion():
         print('Error: Conexion fallida.', ex)
         return None
 
+#Crearmos una función que herede la conexion e mysql de la funcion "Conexión", importamos la tabla region y 
+#Generaremos las inserciones por medio de un for que tomará como referencia las rows del dataframe para 
+#Hacer las inserciones en MySQL
+
 def import_region(conexion, TablaRegion):
     try:
         cursor = conexion.cursor()
@@ -29,9 +44,12 @@ def import_region(conexion, TablaRegion):
         print('Good: Datos de la tabla region insertados.')
     except Error as ex:
         print('Error: Datos en region no insertados:', ex)
+    #Una vez se acabe, se cerrará la conexión a mysql
     finally:
         cursor.close()
 
+#Generamos otra función ahora para exportar a la tabla de MySQL los datos del DataFrame "Pokedex" que ya teníamos en otro script de web scrping
+#Y se hace lo mismo que en el anterior hasta la tabla de tipos 
 def import_pokedex(conexion, TablaPokedex):
     try:
         cursor = conexion.cursor()
@@ -46,7 +64,7 @@ def import_pokedex(conexion, TablaPokedex):
         print('Error: Datos en la Pokedex no insertados:', ex)
     finally:
         cursor.close()
-
+#Se hace lo mismo que en las otras funciones pasadas
 def import_tipos(conexion, TablaTipos):
     try:
         cursor = conexion.cursor()
