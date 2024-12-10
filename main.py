@@ -34,7 +34,7 @@ if __name__ == "__main__":
         conexion_db.close()
 
         #Aquí nos conectamos a la base de datos y podemos leer y ver las inserciones que se realizaron previamente
-        engine = create_engine('mysql+mysqlconnector://root:password@localhost:3306/Pokemon')
+        engine = create_engine('mysql+mysqlconnector://root:password@localhost:3306/Pokemon') #favor de escribir su contraseña para que funcione :)
         data_pokedex = pd.read_sql("SELECT * FROM pokedex", engine)
         data_tipos = pd.read_sql("SELECT * FROM tipos", engine)
         data_regiones = pd.read_sql("SELECT * FROM region", engine)
