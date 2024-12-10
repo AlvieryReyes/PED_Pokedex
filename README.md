@@ -7,8 +7,8 @@ Este proyecto consiste en un conjunto de scripts en Python que realizan web scra
 - [Descripcion del proyecto](#descripcion)
 - [Requisitos](#requisitos)
 - [Estructura del proyecto](#estructura)
-- [Scripts](scripts)
-- [Notas](notas)
+- [Scripts](#scripts)
+- [Notas](#notas)
 
 ## Descripcion
 Este proyecto está compuesto por cuatro scripts principales que cumplen con las siguientes funciones:
